@@ -10,6 +10,7 @@ const initialState = {
   options: null,
   data: null,
   error: null,
+  loading: false,
 }
 
 class App extends Component {
@@ -31,13 +32,13 @@ class App extends Component {
           return res.json().then(err => Promise.reject(err))
         }
       })
-      .then(data => this.setState({ data }))
-      .catch(error => this.setState({ error }))
+      .then(data => this.setState({ data, loading: false }))
+      .catch(error => this.setState({ error, loading: false }))
   }
 
   componentDidMount() {
     fetch.subscribe(
-      ({ url, options }) => this.setState({ url, options })
+      ({ url, options }) => this.setState({ url, options, loading: true })
     )
   }
 
@@ -76,6 +77,7 @@ class App extends Component {
           <pre><code className='language-json'>
               {JSON.stringify(this.state.options, null, 2)}
           </code></pre>
+          {this.state.loading ? <h4>Request loading....</h4> : null}
         </section>
         <section className='card Error'>
           <header>
