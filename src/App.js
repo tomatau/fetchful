@@ -1,28 +1,108 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react'
+import fetch from './fetch'
+import Prism from 'prismjs/components/prism-core';
+import 'prismjs/components/prism-json';
+import 'prismjs/themes/prism-tomorrow.css';
+import './App.css'
+
+const initialState = {
+  url: null,
+  options: null,
+  data: null,
+  error: null,
+}
 
 class App extends Component {
+  state = initialState;
+
+  performFetch = () =>
+    fetch('http://localhost:8000/pokemon?name=pik&type=Electric', {
+      headers: {
+        Authorization: 'Bearer MY-API-TOKEN',
+      },
+    });
+
+  handleClickFetch = (e) => {
+    this.performFetch()
+      .then(res => {
+        if (res.ok) {
+          return res.json()
+        } else {
+          return res.json().then(err => Promise.reject(err))
+        }
+      })
+      .then(data => this.setState({ data }))
+      .catch(error => this.setState({ error }))
+  }
+
+  componentDidMount() {
+    fetch.subscribe(
+      ({ url, options }) => this.setState({ url, options })
+    )
+  }
+
+  componentDidUpdate() {
+    setImmediate(() => Prism.highlightAll())
+  }
+
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+      <div className='App'>
+        <h1>Fetchful</h1>
+        <section className='Buttons'>
+          <button
+            className='success'
+            onClick={this.handleClickFetch}>
+            fetch
+          </button>
+          {' '}
+          <button
+            className='warning'
+            onClick={() => this.setState(initialState)}>
+            clear
+          </button>
+        </section>
+        <section className='card Request'>
+          <header>
+            <h3>Request Options</h3>
+            <p>
+              <strong className='url-label'>URL:</strong>
+              {' '}
+              <span className='url'>
+                {this.state.url}
+              </span>
+            </p>
+          </header>
+          <pre><code className='language-json'>
+              {JSON.stringify(this.state.options, null, 2)}
+          </code></pre>
+        </section>
+        <section className='card Error'>
+          <header>
+            <h3>Error</h3>
+          </header>
+          <pre><code className='language-json'>
+            {JSON.stringify(this.state.error, null, 2)}
+          </code></pre>
+        </section>
+        <section className='card Response'>
+          <header>
+            <h3>Response</h3>
+            <p>
+              <strong className='url-label'>Length:</strong>
+              {' '}
+              <span className='url'>
+                {this.state.data ? this.state.data.length : null}
+              </span>
+            </p>
+          </header>
+          <pre><code className='language-json'>
+            {JSON.stringify(this.state.data, null, 2)}
+          </code></pre>
+        </section>
       </div>
-    );
+    )
   }
 }
 
-export default App;
+export default App
